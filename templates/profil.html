@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Profil</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
+    <style>
+        .profile-photo-container {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+        .profile-photo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #3274d6;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .no-photo-icon {
+            font-size: 150px;
+            color: #dee0e4;
+        }
+        .upload-form {
+            margin-top: 20px;
+        }
+        .upload-form input[type="file"] {
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #dee0e4;
+            border-radius: 5px;
+        }
+        .upload-form input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #3274d6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .upload-form input[type="submit"]:hover {
+            background-color: #2868c7;
+        }
+        .info-form {
+            margin-top: 20px;
+        }
+        .info-form input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #dee0e4;
+            border-radius: 5px;
+        }
+        .info-form input[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .info-form input[type="submit"]:hover {
+            background-color: #218838;
+        }
+        /* Styles pour les messages */
+        .msg.success {
+            color: green;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .msg.error {
+            color: red;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body class="loggedin">
+    <nav class="navtop">
+        <div>
+            <h1>Titre du site Web</h1>
+            <a href="{{ url_for('home') }}"><i class="fas fa-home"></i>Accueil</a>
+            <a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i>Profil</a>
+            {% if session.get('role') == 'admin' or session.get('username') == 'admin' %}
+            <a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i>Dashboard</a>
+            {% endif %}
+            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i>Déconnexion</a>
+        </div>
+    </nav>
+    <div class="content">
+        <h2>Page de profil</h2>
+
+        <!-- Affichage des messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="msg {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        
+        <!-- Section Photo de profil -->
+        <div class="profile-photo-container">
+            <h3>Photo de profil</h3>
+            {% if account['photo'] %}
+                <img src="{{ url_for('static', filename='photos/' + account['photo']) }}" 
+                     alt="Photo de profil" 
+                     class="profile-photo">
+            {% else %}
+                <i class="fas fa-user-circle no-photo-icon"></i>
+            {% endif %}
+            
+            <!-- Formulaire d'upload de photo -->
+            <form action="{{ url_for('update_photo') }}" method="post" enctype="multipart/form-data" class="upload-form">
+                <input type="file" name="photo" accept="image/*" required>
+                <input type="submit" value="📷 Mettre à jour la photo">
+            </form>
+            <p style="color: #666; font-size: 14px; margin-top: 10px;">
+                Formats acceptés : JPG, JPEG, PNG, GIF (Max 16MB)
+            </p>
+        </div>
+
+        <!-- Section Informations du compte -->
+        <div>
+            <h3>Informations du compte</h3>
+            <table>
+                <tr>
+                    <td><strong>Nom d'utilisateur :</strong></td>
+                    <td>{{ account['username'] }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Mot de passe :</strong></td>
+                    <td>******</td>
+                </tr>
+                <tr>
+                    <td><strong>Adresse e-mail :</strong></td>
+                    <td>{{ account['email'] }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Téléphone :</strong></td>
+                    <td>{{ account['phone'] if account['phone'] else 'Non renseigné' }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Adresse :</strong></td>
+                    <td>{{ account['address'] if account['address'] else 'Non renseignée' }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Formulaire de mise à jour des informations -->
+        <div style="margin-top: 30px;">
+            <h3>Mettre à jour mes informations</h3>
+            <form action="{{ url_for('profile') }}" method="post" class="info-form">
+                <label for="phone">Téléphone :</label>
+                <input type="text" id="phone" name="phone" 
+                       value="{{ account['phone'] }}" 
+                       placeholder="Ex: +237 6 XX XX XX XX">
+                
+                <label for="address">Adresse :</label>
+                <input type="text" id="address" name="address" 
+                       value="{{ account['address'] }}" 
+                       placeholder="Ex: Yaoundé, Cameroun">
+                
+                <input type="submit" value="💾 Enregistrer les modifications">
+            </form>
+        </div>
+    </div>
+</body>
+</html>
