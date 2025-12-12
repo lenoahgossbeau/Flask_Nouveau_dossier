@@ -10,17 +10,18 @@ import os
 import re
 from datetime import datetime
 from PIL import Image  # Pillow pour le traitement des images
+import os
 
 # -----------------------------
 # Initialisation Flask
 # -----------------------------
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_change_this_in_production'  # ⚠️ changer en production
+app.secret_key = os.environ.get('SECRET_KEY', 'fallback_secret') # ⚠️ changer en production
 
 # -----------------------------
 # Configuration MongoDB
 # -----------------------------
-app.config['MONGO_URI'] = 'mongodb://localhost:27017/pythonlogin'
+app.config['MONGO_URI'] = os.environ.get('MONGO_URI')
 mongo = PyMongo(app)
 
 # -----------------------------
@@ -333,6 +334,29 @@ def delete_user(user_id):
     flash("✅ Utilisateur supprimé avec succès.", "success")
 
     return redirect(url_for('dashboard'))
+
+
+# -----------------------------
+# Route TESTDB (connexion MongoDB)
+# -----------------------------
+@app.route('/testdb')
+def testdb():
+    try:
+        # Insertion d’un document de test
+        mongo.db.test.insert_one({'ok': True, 'timestamp': datetime.now()})
+        # Lecture du document inséré
+        doc = mongo.db.test.find_one({'ok': True})
+        return f"""
+        <h2>✅ Connexion MongoDB réussie</h2>
+        <p>Document inséré : {doc}</p>
+        """
+    except Exception as e:
+        # Affichage de l’erreur si la connexion échoue
+        return f"""
+        <h2>❌ Erreur MongoDB</h2>
+        <pre>{e}</pre>
+        """
+
 
 # -----------------------------
 # Lancement de l'application
